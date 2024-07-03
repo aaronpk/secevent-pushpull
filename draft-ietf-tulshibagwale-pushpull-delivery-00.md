@@ -1,7 +1,7 @@
 ---
 title: PushPull Based Security Event Token (SET) Delivery Using HTTP
 abbrev: pushpull
-docname: draft-ietf-tulshibagwale-pushpull-delivery-latest
+docname: draft-ietf-tulshibagwale-pushpull-delivery-00
 stand_alone: true
 ipr: trust200902
 cat: info # Check
@@ -28,7 +28,6 @@ author:
 normative:
   RFC2119: # Keywords
   RFC6749: # OAuth 2.0
-  RFC7519: # JWT
   RFC8174: # uppercase / lowercase in keywords
   RFC8259: # JSON
   RFC8417: # SET
@@ -47,39 +46,14 @@ normative:
       name: Phil Hunt
     - ins: A. Parecki
       name: Aaron Parecki
-  SSF:
-    target: http://openid.net/specs/openid-sse-framework-1_0.html
-    title: OpenID Shared Signals and Events Framework Specification 1.0
-    author:
-      -
-        ins: A. Tulshibagwale
-        name: Atul Tulshibagwale
-        org: Google
-      -
-        ins: T. Cappalli
-        name: Tim Cappalli
-        org: Microsoft
-      -
-        ins: M. Scurtescu
-        name: Marius Scurtescu
-        org: Coinbase
-      -
-        ins: A. Backman
-        name: Annabelle Backman
-        org: Amazon
-      -
-        ins: John Bradley
-        name: John Bradley
-        org: Yubico
-    date: 2024-06
 
 
 --- abstract
-In situations where a transmitter of Security Event Tokens (SETs) {{RFC8417}} to a network peer is also a receiver of SETs from the same peer, it is helpful to have an efficient way of sending an receiving SETs in one HTTP transaction. Using current mechanisms such as Push-Based Delivery of Security Event Tokens (SETs) Using HTTP {{RFC8935}} or Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP {{RFC8936}} both require two or more HTTP connections to exchange SETs between peers. In many cases, such as when using the OpenID Shared Signals Framework {{SSF}}, the situation where each entity is both a transmitter and receiver is getting increasingly common. In addition, this specification enables the transmission and reception of multiple SETs in one HTTP connection.
+In situations where a transmitter of Security Event Tokens (SETs) to a network peer is also a receiver of SETs from the same peer, it is helpful to have an efficient way of sending an receiving SETs in one HTTP transaction. Using current mechanisms such as "Push-Based Delivery of Security Event Tokens (SETs) Using HTTP" or "Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP" both require two or more HTTP connections to exchange SETs between peers. In many cases, such as when using the OpenID Shared Signals Framework (SSF), the situation where each entity is both a transmitter and receiver is getting increasingly common. In addition, this specification enables the transmission and reception of multiple SETs in one HTTP connection.
 --- middle
 
 # Introduction
-Workloads that exchange SETs with each other ("Transceivers") can do so efficiently using the protocol defined in this specification. Although this specification works along the lines of the DeliveryPush {{RFC8935}} and DeliveryPoll {{RFC8936}} specifications, it makes a few important additions:
+Workloads that exchange SETs {{RFC8417}} with each other ("Transceivers") can do so efficiently using the protocol defined in this specification. Although this specification works along the lines of the DeliveryPush {{RFC8935}} and DeliveryPoll {{RFC8936}} specifications, it makes a few important additions:
 
 * A Transceiver initiating a communication can send multiple SETs in one HTTP connection to a Peer
 * The Transceiver initiating communication can acknowledge previously received SETs in the same HTTP connection to the Peer
