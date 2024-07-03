@@ -48,18 +48,18 @@ jobs:
       - name: Install xml2rfc
         run: pip install xml2rfc
       - name: Convert pushpull md to xml
-        run: kramdown-rfc2629 draft-ietf-tulshibagwale-pushpull-deliver.md > draft-ietf-tulshibagwale-pushpull-deliver.xml
+        run: kramdown-rfc2629 draft-ietf-tulshibagwale-pushpull-delivery.md > draft-ietf-tulshibagwale-pushpull-delivery.xml
       - name: Render HTML
-        run: xml2rfc draft-ietf-tulshibagwale-pushpull-deliver.xml --html -o draft-ietf-tulshibagwale-pushpull-deliver.html
+        run: xml2rfc draft-ietf-tulshibagwale-pushpull-delivery.xml --html -o draft-ietf-tulshibagwale-pushpull-delivery.html
       - name: Render Text
-        run: xml2rfc draft-ietf-tulshibagwale-pushpull-deliver.xml --text
+        run: xml2rfc draft-ietf-tulshibagwale-pushpull-delivery.xml --text
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: output
           path: |
-            draft-ietf-tulshibagwale-pushpull-deliver.html
-            draft-ietf-tulshibagwale-pushpull-deliver.txt
+            draft-ietf-tulshibagwale-pushpull-delivery.html
+            draft-ietf-tulshibagwale-pushpull-delivery.txt
   publish-to-pages:
     if: github.ref == 'refs/heads/main'
     needs: [build-pushpull]
