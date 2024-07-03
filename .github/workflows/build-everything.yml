@@ -47,7 +47,7 @@ jobs:
         run: gem install kramdown-rfc
       - name: Install xml2rfc
         run: pip install xml2rfc
-      - name: Convert sharedsignals md to xml
+      - name: Convert pushpull md to xml
         run: kramdown-rfc2629 draft-tulshibagwale-pushpull-delivery.md > draft-tulshibagwale-pushpull-delivery.xml 
       - name: Render HTML
         run: xml2rfc draft-tulshibagwale-pushpull-delivery.xml --html -o draft-tulshibagwale-pushpull-delivery.html
@@ -63,7 +63,7 @@ jobs:
 
   publish-to-pages:
     if: github.ref == 'refs/heads/main'
-    needs: [build-sharedsignals]
+    needs: [build-pushpull]
     runs-on: ubuntu-latest
     permissions:
       pages: write
