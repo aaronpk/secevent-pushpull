@@ -6,8 +6,8 @@ stand_alone: true
 ipr: trust200902
 cat: info # Check
 submissiontype: IETF
-# date autofilled by xml2rfc
 area: sec
+# date autofilled by xml2rfc
 
 lang: en
 kw:
