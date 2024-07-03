@@ -53,6 +53,7 @@ jobs:
         run: xml2rfc draft-tulshibagwale-pushpull-delivery.xml --html -o draft-tulshibagwale-pushpull-delivery.html
       - name: Render Text
         run: xml2rfc draft-tulshibagwale-pushpull-delivery.xml --text
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: output
