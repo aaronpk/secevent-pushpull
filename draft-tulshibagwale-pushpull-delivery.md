@@ -1,7 +1,7 @@
 ---
 title: Push And Pull Based Security Event Token (SET) Delivery Using HTTP
 abbrev: pushpull
-docname: draft-tulshibagwale-pushpull-delivery-01
+docname: draft-tulshibagwale-pushpull-delivery-02
 stand_alone: true
 ipr: trust200902
 cat: info # Check
@@ -49,7 +49,7 @@ normative:
 
 
 --- abstract
-In situations where a transmitter of Security Event Tokens (SETs) to a network peer is also a receiver of SETs from the same peer, it is helpful to have an efficient way of sending an receiving SETs in one HTTP transaction. Using current mechanisms such as "Push-Based Delivery of Security Event Tokens (SETs) Using HTTP" or "Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP" both require two or more HTTP connections to exchange SETs between peers. In many cases, such as when using the OpenID Shared Signals Framework (SSF), the situation where each entity is both a transmitter and receiver is getting increasingly common. In addition, this specification enables the transmission and reception of multiple SETs in one HTTP connection.
+In situations where a transmitter of Security Event Tokens (SETs) to a network peer is also a receiver of SETs from the same peer, it is helpful to have an efficient way of sending and receiving SETs in one HTTP transaction. Using current mechanisms such as "Push-Based Delivery of Security Event Tokens (SETs) Using HTTP" or "Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP" both require two or more HTTP connections to exchange SETs between peers. In many cases, such as when using the OpenID Shared Signals Framework (SSF), the situation where each entity is both a transmitter and receiver is getting increasingly common. In addition, this specification enables the transmission and reception of multiple SETs in one HTTP connection.
 --- middle
 
 # Introduction
