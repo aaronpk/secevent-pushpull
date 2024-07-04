@@ -48,11 +48,11 @@ jobs:
       - name: Install xml2rfc
         run: pip install xml2rfc
       - name: Convert pushpull md to xml
-        run: kramdown-rfc2629 draft-ietf-tulshibagwale-pushpull-delivery-00.md > draft-ietf-tulshibagwale-pushpull-delivery.xml
+        run: kramdown-rfc2629 draft-tulshibagwale-pushpull-delivery-01.md > draft-tulshibagwale-pushpull-delivery.xml
       - name: Render HTML
-        run: xml2rfc draft-ietf-tulshibagwale-pushpull-delivery.xml --html -o index.html
+        run: xml2rfc draft-tulshibagwale-pushpull-delivery.xml --html -o index.html
       - name: Render Text
-        run: xml2rfc draft-ietf-tulshibagwale-pushpull-delivery.xml --text
+        run: xml2rfc draft-tulshibagwale-pushpull-delivery.xml --text
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:

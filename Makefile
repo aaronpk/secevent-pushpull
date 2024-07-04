@@ -1,11 +1,16 @@
-LIBDIR := lib
-include $(LIBDIR)/main.mk
+OPEN=$(word 1, $(wildcard /usr/bin/xdg-open /usr/bin/open /bin/echo))
+SOURCES?=${wildcard *.xml}
+TEXT=${SOURCES:.xml=.txt}
+HTML=${SOURCES:.xml=.html}
 
-$(LIBDIR)/main.mk:
-ifneq (,$(shell grep "path *= *$(LIBDIR)" .gitmodules 2>/dev/null))
-	git submodule sync
-	git submodule update $(CLONE_ARGS) --init
-else
-	git clone -q --depth 10 $(CLONE_ARGS) \
-	    -b main https://github.com/martinthomson/i-d-template $(LIBDIR)
-endif
+text:	$(TEXT)
+html:   $(HTML)
+
+%.html: %.xml
+	xml2rfc --html $^
+
+%.txt:	%.xml
+	xml2rfc $^
+
+%.xml: %.md
+	kramdown-rfc2629 > $@ $^

@@ -1,7 +1,7 @@
 ---
-title: PushPull Based Security Event Token (SET) Delivery Using HTTP
+title: Push And Pull Based Security Event Token (SET) Delivery Using HTTP
 abbrev: pushpull
-docname: draft-ietf-tulshibagwale-pushpull-delivery-00
+docname: draft-tulshibagwale-pushpull-delivery-01
 stand_alone: true
 ipr: trust200902
 cat: info # Check
@@ -109,6 +109,51 @@ setErrs
   description
   : OPTIONAL. An explanation of why the SET failed to be processed.
 
+## Example
+The following is a non-normative example of a Communication Object
+
+~~~ json
+{
+  "sets": {
+    "4d3559ec67504aaba65d40b0363faad8": 
+    "eyJhbGciOiJub25lIn0.
+    eyJqdGkiOiI0ZDM1NTllYzY3NTA0YWFiYTY1ZDQwYjAzNjNmYWFkOCIsImlhdC
+    I6MTQ1ODQ5NjQwNCwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
+    YXVkIjpbImh0dHBzOi8vc2NpbS5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
+    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tL0Zl
+    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwiZXZlbnRzIjp7InVybj
+    ppZXRmOnBhcmFtczpzY2ltOmV2ZW50OmNyZWF0ZSI6eyJyZWYiOiJodHRwczov
+    L3NjaW0uZXhhbXBsZS5jb20vVXNlcnMvNDRmNjE0MmRmOTZiZDZhYjYxZTc1Mj
+    FkOSIsImF0dHJpYnV0ZXMiOlsiaWQiLCJuYW1lIiwidXNlck5hbWUiLCJwYXNz
+    d29yZCIsImVtYWlscyJdfX19.",
+    "3d0c3cf797584bd193bd0fb1bd4e7d30":
+    "eyJhbGciOiJub25lIn0.
+    eyJqdGkiOiIzZDBjM2NmNzk3NTg0YmQxOTNiZDBmYjFiZDRlN2QzMCIsImlhdC
+    I6MTQ1ODQ5NjAyNSwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
+    YXVkIjpbImh0dHBzOi8vamh1Yi5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
+    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9qaHViLmV4YW1wbGUuY29tL0Zl
+    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwic3ViIjoiaHR0cHM6Ly
+    9zY2ltLmV4YW1wbGUuY29tL1VzZXJzLzQ0ZjYxNDJkZjk2YmQ2YWI2MWU3NTIx
+    ZDkiLCJldmVudHMiOnsidXJuOmlldGY6cGFyYW1zOnNjaW06ZXZlbnQ6cGFzc3
+    dvcmRSZXNldCI6eyJpZCI6IjQ0ZjYxNDJkZjk2YmQ2YWI2MWU3NTIxZDkifSwi
+    aHR0cHM6Ly9leGFtcGxlLmNvbS9zY2ltL2V2ZW50L3Bhc3N3b3JkUmVzZXRFeH
+    QiOnsicmVzZXRBdHRlbXB0cyI6NX19fQ."
+  },
+  "ack": [
+    "f52901c4-3996-11ef-9454-0242ac120002",
+    "0636e274-3997-11ef-9454-0242ac120002",
+    "d563c724-79a0-4ff0-ba41-657fa5e2cb11"
+  ],
+  "setErrs": {
+    "5c436b19-0958-4367-b408-2dd542606d3b" : {
+      "err": "invalid subject",
+      "description": "subject format not supported"
+    }
+  }
+}
+~~~
+{: #fig-communication-object-example title="Example of a Communication Object"}
+
 # Initiating Communication
 
 A Transceiver can initiate communication with a Peer in order to:
@@ -120,7 +165,7 @@ A Transceiver can initiate communication with a Peer in order to:
 To initiate communication, the Initiator makes a HTTP POST request to the Responder's Pushpull Endpoint {{pushpull-endpoint}}. The body of this request is of the content type "application/json". It contains a Communication Object {{communication-object}}, and the following additional field MAY be present:
 
 maxResponseEvents
-: OPTIONAL. A number which specifies the maximum number of events the Responder can include in its response to the Initiator. If this field is absent in the request, the Responder MAY include any number of events in the response.
+: OPTIONAL. A number which specifies the maximum number of events the Responder can include in its response to the Initiator. If this field is absent in the request, the Responder MAY include any number of events in the response. If this field is present, then the Responder MUST NOT include more events than the value of "maxResponseEvents" in its response to the specific request.
 
 # Response Communication
 
@@ -131,6 +176,84 @@ If the Responder is successful in processing the request, it MUST return the HTT
 
 ## Error Response
 The Responder MUST respond with an error response if it is unable to process the request. The error response MUST include the appropriate error code as described in Section 2.4 of DeliveryPush {{RFC8935}}.
+
+# Example Request and Response
+The following is a non-normative example of a request and its corresponding response
+
+## Request
+
+~~~ http
+POST /pushpull-endpoint HTTP/1.1
+Host: sharedsignals-transceiver.myorg.example
+Content-type: application/json
+Authorization: Bearer eyJraWQiOiIyMDIwXzEiLCJJhbGciOiJSUzI1NiJ9...
+
+{
+  "ack": [],
+  "sets": {
+    "4d3559ec67504aaba65d40b0363faad8": 
+    "eyJhbGciOiJub25lIn0.
+    eyJqdGkiOiI0ZDM1NTllYzY3NTA0YWFiYTY1ZDQwYjAzNjNmYWFkOCIsImlhdC
+    I6MTQ1ODQ5NjQwNCwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
+    YXVkIjpbImh0dHBzOi8vc2NpbS5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
+    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tL0Zl
+    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwiZXZlbnRzIjp7InVybj
+    ppZXRmOnBhcmFtczpzY2ltOmV2ZW50OmNyZWF0ZSI6eyJyZWYiOiJodHRwczov
+    L3NjaW0uZXhhbXBsZS5jb20vVXNlcnMvNDRmNjE0MmRmOTZiZDZhYjYxZTc1Mj
+    FkOSIsImF0dHJpYnV0ZXMiOlsiaWQiLCJuYW1lIiwidXNlck5hbWUiLCJwYXNz
+    d29yZCIsImVtYWlscyJdfX19.",
+    "3d0c3cf797584bd193bd0fb1bd4e7d30":
+    "eyJhbGciOiJub25lIn0.
+    eyJqdGkiOiIzZDBjM2NmNzk3NTg0YmQxOTNiZDBmYjFiZDRlN2QzMCIsImlhdC
+    I6MTQ1ODQ5NjAyNSwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
+    YXVkIjpbImh0dHBzOi8vamh1Yi5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
+    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9qaHViLmV4YW1wbGUuY29tL0Zl
+    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwic3ViIjoiaHR0cHM6Ly
+    9zY2ltLmV4YW1wbGUuY29tL1VzZXJzLzQ0ZjYxNDJkZjk2YmQ2YWI2MWU3NTIx
+    ZDkiLCJldmVudHMiOnsidXJuOmlldGY6cGFyYW1zOnNjaW06ZXZlbnQ6cGFzc3
+    dvcmRSZXNldCI6eyJpZCI6IjQ0ZjYxNDJkZjk2YmQ2YWI2MWU3NTIxZDkifSwi
+    aHR0cHM6Ly9leGFtcGxlLmNvbS9zY2ltL2V2ZW50L3Bhc3N3b3JkUmVzZXRFeH
+    QiOnsicmVzZXRBdHRlbXB0cyI6NX19fQ."
+  },
+  "setErrs": {
+    "5c436b19-0958-4367-b408-2dd542606d3b" : {
+      "err": "invalid subject",
+      "description": "subject format not supported"
+    }
+  },
+  "maxResponseEvents": 10
+}
+~~~
+{: #fig-example-request title="Example Pushpull request"}
+In the above example request, the Initiator does acknowledge any previous events. Delivers two SETs and reports an error on a previously received SET.
+
+## Response
+The following is a non-normative example of a response:
+
+~~~ http
+HTTP/1.1 200 OK
+Content-type: application/json
+
+{
+  "ack": [
+    "3d0c3cf797584bd193bd0fb1bd4e7d30"
+  ],
+  "sets": {
+    "756E69717565206964656E746966696572":
+    "eyJ0eXAiOiJzZWNldmVudCtqd3QiLCJhbGciOiJIUzI1NiJ9Cg.
+  eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLmNvbS8iLCJqdGkiOiI3NTZFNjk
+  3MTc1NjUyMDY5NjQ2NTZFNzQ2OTY2Njk2NTcyIiwiaWF0IjoxNTA4MTg0ODQ1LC
+  JhdWQiOiI2MzZDNjk2NTZFNzQ1RjY5NjQiLCJldmVudHMiOnsiaHR0cHM6Ly9zY
+  2hlbWFzLm9wZW5pZC5uZXQvc2VjZXZlbnQvcmlzYy9ldmVudC10eXBlL2FjY291
+  bnQtZGlzYWJsZWQiOnsic3ViamVjdCI6eyJzdWJqZWN0X3R5cGUiOiJpc3Mtc3V
+  iIiwiaXNzIjoiaHR0cHM6Ly9pZHAuZXhhbXBsZS5jb20vIiwic3ViIjoiNzM3NT
+  YyNkE2NTYzNzQifSwicmVhc29uIjoiaGlqYWNraW5nIn19fQ.
+  Y4rXxMD406P2edv00cr9Wf3_XwNtLjB9n-jTqN1_lLc"
+  }
+}
+~~~
+{: #fig-example-response title="Example Pushpull response"}
+In the above example, the Responder acknowledges one of the SETs it previously received and provides a SET to deliver to the initiator. There are no errors reported by the Responder.
 
 # Authentication and Authorization {#authn-and-authz}
 The Initiator MUST verify the identity of the Responder by validating the TLS certification presented by the Responder, and verifying that it is the intended recipient of the request, before sending the Communication Object {{communication-object}}.
