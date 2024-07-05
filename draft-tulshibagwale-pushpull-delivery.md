@@ -1,7 +1,7 @@
 ---
 title: Push And Pull Based Security Event Token (SET) Delivery Using HTTP
 abbrev: pushpull
-docname: draft-tulshibagwale-pushpull-delivery-02
+docname: draft-tulshibagwale-pushpull-delivery-latest
 stand_alone: true
 ipr: trust200902
 cat: info # Check
