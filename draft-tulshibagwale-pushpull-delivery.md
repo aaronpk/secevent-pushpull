@@ -1,5 +1,5 @@
 ---
-title: Push And Pull Based Security Event Token (SET) Delivery Using HTTP
+title: Push And Pull Based Security Event Token (SET) Delivery
 abbrev: pushpull
 docname: draft-tulshibagwale-pushpull-delivery-latest
 stand_alone: true
@@ -24,9 +24,15 @@ author:
   org: SGNL
   email: atul@sgnl.ai
 
+contributor:
+- ins: E. Gustavson
+  name: Erik Gustavson
+  org: SGNL
+  email: erik@sgnl.ai
 
 normative:
   RFC2119: # Keywords
+  RFC6455: # WebSocket
   RFC6749: # OAuth 2.0
   RFC8174: # uppercase / lowercase in keywords
   RFC8259: # JSON
@@ -46,6 +52,11 @@ normative:
       name: Phil Hunt
     - ins: A. Parecki
       name: Aaron Parecki
+  IANA.WebSocket.Subprotocol:
+    title: WebSocket Subprotocol Name Registry
+    target: https://www.iana.org/assignments/websocket/websocket.xml#subprotocol-name
+    author:
+     - name: IANA
 
 
 --- abstract
@@ -154,7 +165,10 @@ The following is a non-normative example of a Communication Object
 ~~~
 {: #fig-communication-object-example title="Example of a Communication Object"}
 
-# Initiating Communication
+# HTTP Request Response Binding {#http-request-response-binding}
+This section describes how Transceivers can use HTTP Requests and Responses to exchange Communication Objects described in  {{communication-object}}.
+
+## Initiating Communication
 
 A Transceiver can initiate communication with a Peer in order to:
 
@@ -167,20 +181,20 @@ To initiate communication, the Initiator makes a HTTP POST request to the Respon
 maxResponseEvents
 : OPTIONAL. A number which specifies the maximum number of events the Responder can include in its response to the Initiator. If this field is absent in the request, the Responder MAY include any number of events in the response. If this field is present, then the Responder MUST NOT include more events than the value of "maxResponseEvents" in its response to the specific request.
 
-# Response Communication
+## Response Communication
 
 A Responder MUST respond to a communication from an Initiator by sending an HTTP Response.
 
-## Success Response
+### Success Response
 If the Responder is successful in processing the request, it MUST return the HTTP status code 200 (OK). The response MUST have the content-type "application/json" and the response MUST include a Communication Object {{communication-object}}.
 
-## Error Response
+### Error Response
 The Responder MUST respond with an error response if it is unable to process the request. The error response MUST include the appropriate error code as described in Section 2.4 of DeliveryPush {{RFC8935}}.
 
-# Example Request and Response
+## Example Request and Response
 The following is a non-normative example of a request and its corresponding response
 
-## Request
+### Request
 
 ~~~ http
 POST /pushpull-endpoint HTTP/1.1
@@ -227,7 +241,7 @@ Authorization: Bearer eyJraWQiOiIyMDIwXzEiLCJJhbGciOiJSUzI1NiJ9...
 {: #fig-example-request title="Example Pushpull request"}
 In the above example request, the Initiator does acknowledge any previous events. Delivers two SETs and reports an error on a previously received SET.
 
-## Response
+### Response
 The following is a non-normative example of a response:
 
 ~~~ http
@@ -254,6 +268,17 @@ Content-type: application/json
 ~~~
 {: #fig-example-response title="Example Pushpull response"}
 In the above example, the Responder acknowledges one of the SETs it previously received and provides a SET to deliver to the initiator. There are no errors reported by the Responder.
+
+# WebSocket Binding
+Transceivers MAY use WebSockets {{RFC6455}} to send and receive Communication Objects described in {{communication-object}}. Since WebSockets are a symmetric protocol, a Transceiver MAY send a Communication Object at any time to its Peer. In such communication, a Transceiver sends a Communication Object as Payload data over the WebSocket protocol to a Peer. Similarly, a Transceiver MAY receive a Communication Object from a Peer over a WebSocket connection, wherein the Communication Object is the Payload data. In all such WebSocket communication, the Payload data does not have any Extension data in it.
+
+## Using WebSockets
+During any communication initiated by a Transceiver, the Transceiver MAY request the Peer to use WebSockets {{RFC6455}} by requesting that the connection be upgraded to a WebSocket connection. If the Transceiver and its Peer can successfully perform the WebSocket handshake for the Pushpull Subprotocol described in {{pushpull-subprotocol-handshake}}, then the Transceiver and Peer MUST use WebSockets until the connection is closed. If the handshake fails, the Transceiver and Peer MAY use the HTTP Request Response Binding as described in {{http-request-response-binding}}
+
+### Pushpull Subprotocol Handshake {#pushpull-subprotocol-handshake}
+The Pushpull subprotocol is used to transport Communication Objects {{communication-object}} over a WebSocket connection. The Transceiver and its Peer agree to this subprotocol during the WebSocket handshake (see {{Section 1.3 of RFC6455}}).
+
+During the Websocket handshake, the Initiator MUST include the value `pushpull` in the list of protocols for the `Sec-WebSocket-Protocol` header. The reply from the Responder MUST also include the value `pushpull` in the list of values in its own `Sec-WebSocket-Protocol` header, in order for the Initiator and Responder to use WebSockets.
 
 # Authentication and Authorization {#authn-and-authz}
 The Initiator MUST verify the identity of the Responder by validating the TLS certification presented by the Responder, and verifying that it is the intended recipient of the request, before sending the Communication Object {{communication-object}}.
@@ -285,6 +310,10 @@ A Responder may be vulnerable to denial of service attacks wherein a large numbe
 SETs may contain confidential information, and Transceivers receiving SETs must be careful not to log such content or ensure that sensitive information from the SET is redacted before logging.
 
 # IANA Considerations
-This specification does not add any new IANA considerations.
+The following WebSocket subprotocol will be added to the "WebSocket Subprotocol Name Registry" {{IANA.WebSocket.Subprotocol}}
 
+* Subprotocol Identifier: `puhspull`
+* Subprotocol Common Name: `WebSocket transport for Pushpull delivery of SETs`
+* Subprotocol Definition: Section {{pushpull-subprotocol-handshake}} of this document.
 
+--- back
