@@ -35,6 +35,10 @@ contributor:
   name: Erik Gustavson
   org: SGNL
   email: erik@sgnl.ai
+- ins: A. Deshpande
+  name: Apoorva Deshpande
+  org: Okta
+  email: apoorva.deshpande@okta.com
 
 normative:
   RFC2119: # Keywords
@@ -191,11 +195,14 @@ maxResponseEvents
 
 A Responder MUST respond to a communication from an Initiator by sending an HTTP Response.
 
-### Success Response
+### Success Response {#http-success-response}
 If the Responder is successful in processing the request, it MUST return the HTTP status code 200 (OK). The response MUST have the content-type "application/json" and the response MUST include a Communication Object {{communication-object}}.
 
 ### Error Response
 The Responder MUST respond with an error response if it is unable to process the request. The error response MUST include the appropriate error code as described in Section 2.4 of DeliveryPush {{RFC8935}}.
+
+### Out Of Order Responses
+A Communication Object in a Response may contain `jti` values in its `ack` or `setErrs` that do not correspond to the SETs received in the same Request to which the Response is being sent. They MAY consist of values received in previous Requests.
 
 ## Example Request and Response
 The following is a non-normative example of a request and its corresponding response
@@ -301,6 +308,12 @@ A Transceiver MUST attempt to deliver any SETs it has previously attempted to de
 
 If a Transceiver previously attempted to deliver a SET in a response to a Peer's request, the Transceiver MAY Initiate a request to the Peer in order to retry delivery of the SET. A Peer MUST be able to either provide `ack`s or `setErrs` for the same SETs either through requests or responses.
 
+# All SETs Accounted For {#all-sets-accounted-for}
+A Transceiver MUST ensure that it includes the `jti` value of each SET it receives, either in an `ack` or a `setErrs` value, to the Transceiver from which it received the SETs. A Transceiver SHOULD retry sending the same SET again if it was never responded to either in an `ack` value or in a `setErrs` value by a receiving Transceiver in a reasonable time period. A Transceiver MAY limit the number of times it retries sending a SET. A Transceiver MAY publish the retry time period and maximum number of retries to its peers, but such publication is outside the scope of this specification.
+
+# Uniqueness of SETs
+A Transceiver MUST NOT send two SETs with the same `jti` value if the SET has been either acknowledged through `ack` value or produced an error indicated by a `setErrs` value. If a Transceiver wishes to re-send an event after it has received a error response through a `setErrs` value, then it MUST generate a new SET that has a new (and unique) `jti` value.
+
 # Security Considerations
 
 ## Authentication and Authorization
@@ -311,6 +324,9 @@ Transceivers MUST use TLS {{RFC8446}} to communicate with Peers and is subject t
 
 ## Denial of Service
 A Responder may be vulnerable to denial of service attacks wherein a large number of spurious requests need to be processed. Having efficient authorization mechanisms such as OAuth 2.0 {{RFC6749}} can mitigate such attacks by leveraging standard infrastructure that is designed to handle such attacks.
+
+## Temporary Disconnection
+Transceivers must make sure they respond to each SET received in a timely manner as described in the "All SETs Accounted For" section {{all-sets-accounted-for}}. This ensures that if there was a temporary disconnection between two Transceivers, say when a Responding Transceiver sent a Communication Object in the HTTP Response, that such disconnection is detected and the missing SETs can be retried.
 
 # Privacy Considerations
 SETs may contain confidential information, and Transceivers receiving SETs must be careful not to log such content or ensure that sensitive information from the SET is redacted before logging.
