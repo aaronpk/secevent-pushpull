@@ -302,6 +302,7 @@ The Responder MUST verify the identity and authorization of the Initiator. The R
 
 # Delivery Reliability
 A Transceiver MUST attempt to deliver any SETs it has previously attempted to deliver to a Peer until:
+
 * It receives an acknowledgement through the `ack` value for that SET in a subsequent communication with the Peer
 * It receives a `setErrs` object for that SET in a subsequent communication with the Peer
 * It has attempted to deliver the SET a maximum number of times and has failed to communicate either due to communication errors or lack of inclusion in `ack` or `setErrs` in subsequent communications that were conducted for the maximum number of times. The maximum number of attempts MAY be set by the Transceiver for itself and SHOULD be communicated offline to the Peers.
