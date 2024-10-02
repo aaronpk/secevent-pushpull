@@ -70,7 +70,9 @@ normative:
 
 
 --- abstract
-In situations where a transmitter of Security Event Tokens (SETs) to a network peer is also a receiver of SETs from the same peer, it is helpful to have an efficient way of sending and receiving SETs in one HTTP transaction. Using current mechanisms such as "Push-Based Delivery of Security Event Tokens (SETs) Using HTTP" or "Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP" both require two or more HTTP connections to exchange SETs between peers. In many cases, such as when using the OpenID Shared Signals Framework (SSF), the situation where each entity is both a transmitter and receiver is getting increasingly common. In addition, this specification enables the transmission and reception of multiple SETs in one HTTP connection.
+In situations where a transmitter of Security Event Tokens (SETs) to a network peer is also a receiver of SETs from the same peer, it is helpful to have an efficient way of sending and receiving SETs in one HTTP transaction. In many cases, such as when using the OpenID Shared Signals Framework (SSF), the situation where each entity is both a transmitter and receiver is getting increasingly common.
+
+Using current mechanisms such as "Push-Based Delivery of Security Event Tokens (SETs) Using HTTP" or "Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP" both require two or more HTTP connections to exchange SETs between peers. This is inefficient due to the latency of setting up each communication. This specification enables bi-directional transmission and reception of multiple SETs in one HTTP connection, and enables them to do so over a single HTTP or WebSocket connection. 
 --- middle
 
 # Introduction
@@ -110,7 +112,7 @@ DeliveryPoll
 : The IETF RFC titled "Poll-Based Delivery of Security Event Tokens (SETs) Using HTTP" {{RFC8936}}.
 
 # Pushpull Endpoint {#pushpull-endpoint}
-Each Transceiver that supports this specification MUST support a "Pushpull" endpoint. This endpoint MUST be capable of serving HTTP {{RFC9110}} requests. This endpoint MUST be TLS {{RFC8446}} enabled and MUST reject any communication not using TLS.
+Each Transceiver that supports this specification MUST support a "Pushpull" endpoint. This endpoint MUST be capable of serving HTTP {{RFC9110}} requests. This endpoint MUST be TLS {{RFC8446}} enabled and MUST reject any communication not using TLS. The Pushpull endpoint MUST support the HTTP method `POST` and reject all other HTTP methods.
 
 # Communication Object {#communication-object}
 A Communication Object is a JSON object {{RFC8259}}, and is a unit of communication used in this specification used both in requests and responses. When used in a request, the Initiator MAY have additional fields defined the later sections below. The common fields of this object are:
@@ -125,10 +127,10 @@ setErrs
 : OPTIONAL. A JSON object containing key-value pairs in which the key of a field is a string that contains the `jti` value of a previously received SET that the sender of the communication object was unable to process. The value of the field is a JSON object that has the following fields:
 
   err
-  : OPTIONAL. The short reason why the specified SET failed to be processed.
+  : REQUIRED. The short reason why the specified SET failed to be processed.
 
   description
-  : OPTIONAL. An explanation of why the SET failed to be processed.
+  : REQUIRED. An explanation of why the SET failed to be processed.
 
 ## Example
 The following is a non-normative example of a Communication Object
@@ -136,18 +138,19 @@ The following is a non-normative example of a Communication Object
 ~~~ json
 {
   "sets": {
-    "4d3559ec67504aaba65d40b0363faad8": 
-    "eyJhbGciOiJub25lIn0.
-    eyJqdGkiOiI0ZDM1NTllYzY3NTA0YWFiYTY1ZDQwYjAzNjNmYWFkOCIsImlhdC
-    I6MTQ1ODQ5NjQwNCwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
-    YXVkIjpbImh0dHBzOi8vc2NpbS5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
-    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tL0Zl
-    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwiZXZlbnRzIjp7InVybj
-    ppZXRmOnBhcmFtczpzY2ltOmV2ZW50OmNyZWF0ZSI6eyJyZWYiOiJodHRwczov
-    L3NjaW0uZXhhbXBsZS5jb20vVXNlcnMvNDRmNjE0MmRmOTZiZDZhYjYxZTc1Mj
-    FkOSIsImF0dHJpYnV0ZXMiOlsiaWQiLCJuYW1lIiwidXNlck5hbWUiLCJwYXNz
-    d29yZCIsImVtYWlscyJdfX19.",
-    "3d0c3cf797584bd193bd0fb1bd4e7d30":
+    "dfc38da2-939e-4536-bec9-b8a16ed45c4e": 
+    "eyJhbGciOiJIUzI1NiJ9.
+    eyJqdGkiOiJkZmMzOGRhMi05MzllLTQ1MzYtYmVjOS1iOGExNmVkNDVjNGUiLC
+    JpYXQiOjE0NTg0OTY0MDQsImlzcyI6Imh0dHBzOi8vc2NpbS5leGFtcGxlLmNv
+    bSIsImF1ZCI6WyJodHRwczovL3NjaW0uZXhhbXBsZS5jb20vRmVlZHMvOThkNT
+    I0NjFmYTViYmM4Nzk1OTNiNzc1NCIsImh0dHBzOi8vc2NpbS5leGFtcGxlLmNv
+    bS9GZWVkcy81ZDc2MDQ1MTZiMWQwODY0MWQ3Njc2ZWU3Il0sImV2ZW50cyI6ey
+    J1cm46aWV0ZjpwYXJhbXM6c2NpbTpldmVudDpjcmVhdGUiOnsicmVmIjoiaHR0
+    cHM6Ly9zY2ltLmV4YW1wbGUuY29tL1VzZXJzLzQ0ZjYxNDJkZjk2YmQ2YWI2MW
+    U3NTIxZDkiLCJhdHRyaWJ1dGVzIjpbImlkIiwibmFtZSIsInVzZXJOYW1lIiwi
+    cGFzc3dvcmQiLCJlbWFpbHMiXX19fQ.XuVUJWrU6l80dcJ8bTRf-erMzFtQFYo
+    kZLN--Kzd98o",
+    "d93341ad-7329-4d1b-ba4a-9ff6f9f34003":
     "eyJhbGciOiJub25lIn0.
     eyJqdGkiOiIzZDBjM2NmNzk3NTg0YmQxOTNiZDBmYjFiZDRlN2QzMCIsImlhdC
     I6MTQ1ODQ5NjAyNSwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
@@ -162,7 +165,7 @@ The following is a non-normative example of a Communication Object
   },
   "ack": [
     "f52901c4-3996-11ef-9454-0242ac120002",
-    "0636e274-3997-11ef-9454-0242ac120002",
+    "50924f49-55a9-47ca-820d-b1161cb0a602",
     "d563c724-79a0-4ff0-ba41-657fa5e2cb11"
   ],
   "setErrs": {
@@ -182,7 +185,7 @@ This section describes how Transceivers can use HTTP Requests and Responses to e
 
 A Transceiver can initiate communication with a Peer in order to:
 
-* Acknowledge previously received SETs from the Peer.
+* Positively or negatively acknowledge previously received SETs from the Peer.
 * Send SETs to the Peer.
 * Both acknowledge previously received SETs from the Peer and send SETs to the Peer.
 
@@ -196,10 +199,14 @@ maxResponseEvents
 A Responder MUST respond to a communication from an Initiator by sending an HTTP Response.
 
 ### Success Response {#http-success-response}
-If the Responder is successful in processing the request, it MUST return the HTTP status code 200 (OK). The response MUST have the content-type "application/json" and the response MUST include a Communication Object {{communication-object}}.
+If the Responder is successful in receiving the request, it MUST return the HTTP status code 200 (OK). This status only indicates that the communication received was well formatted and was successfully parsed by the Responder. It does not indicate anything about whether any SETs in the communication were accepted or not.
+
+The response MUST have the content-type "application/json" and the response MUST include a Communication Object {{communication-object}}.
 
 ### Error Response
-The Responder MUST respond with an error response if it is unable to process the request. The error response MUST include the appropriate error code as described in Section 2.4 of DeliveryPush {{RFC8935}}.
+The Responder MUST respond with an error response if it is unable to process the request. This error response means that the responder was unable to parse the communication or the responder encountered a system error while attempting to process the communication. It does not indicate a positive or negative acknowledgement of any SETs in the communication.
+
+The error response MUST include the appropriate error code as described in Section 2.4 of DeliveryPush {{RFC8935}}.
 
 ### Out Of Order Responses
 A Communication Object in a Response may contain `jti` values in its `ack` or `setErrs` that do not correspond to the SETs received in the same Request to which the Response is being sent. They MAY consist of values received in previous Requests.
@@ -218,29 +225,31 @@ Authorization: Bearer eyJraWQiOiIyMDIwXzEiLCJJhbGciOiJSUzI1NiJ9...
 {
   "ack": [],
   "sets": {
-    "4d3559ec67504aaba65d40b0363faad8": 
-    "eyJhbGciOiJub25lIn0.
-    eyJqdGkiOiI0ZDM1NTllYzY3NTA0YWFiYTY1ZDQwYjAzNjNmYWFkOCIsImlhdC
-    I6MTQ1ODQ5NjQwNCwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
-    YXVkIjpbImh0dHBzOi8vc2NpbS5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
-    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tL0Zl
-    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwiZXZlbnRzIjp7InVybj
-    ppZXRmOnBhcmFtczpzY2ltOmV2ZW50OmNyZWF0ZSI6eyJyZWYiOiJodHRwczov
-    L3NjaW0uZXhhbXBsZS5jb20vVXNlcnMvNDRmNjE0MmRmOTZiZDZhYjYxZTc1Mj
-    FkOSIsImF0dHJpYnV0ZXMiOlsiaWQiLCJuYW1lIiwidXNlck5hbWUiLCJwYXNz
-    d29yZCIsImVtYWlscyJdfX19.",
-    "3d0c3cf797584bd193bd0fb1bd4e7d30":
-    "eyJhbGciOiJub25lIn0.
-    eyJqdGkiOiIzZDBjM2NmNzk3NTg0YmQxOTNiZDBmYjFiZDRlN2QzMCIsImlhdC
-    I6MTQ1ODQ5NjAyNSwiaXNzIjoiaHR0cHM6Ly9zY2ltLmV4YW1wbGUuY29tIiwi
-    YXVkIjpbImh0dHBzOi8vamh1Yi5leGFtcGxlLmNvbS9GZWVkcy85OGQ1MjQ2MW
-    ZhNWJiYzg3OTU5M2I3NzU0IiwiaHR0cHM6Ly9qaHViLmV4YW1wbGUuY29tL0Zl
-    ZWRzLzVkNzYwNDUxNmIxZDA4NjQxZDc2NzZlZTciXSwic3ViIjoiaHR0cHM6Ly
-    9zY2ltLmV4YW1wbGUuY29tL1VzZXJzLzQ0ZjYxNDJkZjk2YmQ2YWI2MWU3NTIx
-    ZDkiLCJldmVudHMiOnsidXJuOmlldGY6cGFyYW1zOnNjaW06ZXZlbnQ6cGFzc3
-    dvcmRSZXNldCI6eyJpZCI6IjQ0ZjYxNDJkZjk2YmQ2YWI2MWU3NTIxZDkifSwi
-    aHR0cHM6Ly9leGFtcGxlLmNvbS9zY2ltL2V2ZW50L3Bhc3N3b3JkUmVzZXRFeH
-    QiOnsicmVzZXRBdHRlbXB0cyI6NX19fQ."
+    "9deb50b0-d2f8-4793-a420-5e5678cf25a8": 
+    "eyJhbGciOiJIUzI1NiJ9.
+    eyJqdGkiOiI5ZGViNTBiMC1kMmY4LTQ3OTMtYTQyMC01ZTU2NzhjZjI1YTgiLC
+    JpYXQiOjE0NTg0OTY0MDQsImlzcyI6Imh0dHBzOi8vc2NpbS5leGFtcGxlLmNv
+    bSIsImF1ZCI6WyJodHRwczovL3NjaW0uZXhhbXBsZS5jb20vRmVlZHMvOThkNT
+    I0NjFmYTViYmM4Nzk1OTNiNzc1NCIsImh0dHBzOi8vc2NpbS5leGFtcGxlLmNv
+    bS9GZWVkcy81ZDc2MDQ1MTZiMWQwODY0MWQ3Njc2ZWU3Il0sImV2ZW50cyI6ey
+    J1cm46aWV0ZjpwYXJhbXM6c2NpbTpldmVudDpjcmVhdGUiOnsicmVmIjoiaHR0
+    cHM6Ly9zY2ltLmV4YW1wbGUuY29tL1VzZXJzLzQ0ZjYxNDJkZjk2YmQ2YWI2MW
+    U3NTIxZDkiLCJhdHRyaWJ1dGVzIjpbImlkIiwibmFtZSIsInVzZXJOYW1lIiwi
+    cGFzc3dvcmQiLCJlbWFpbHMiXX19fQ.KAaZj082ge8I1AiXfnmYw49ILFc5hEA
+    tTZC9LkGg7IA",
+    "d93341ad-7329-4d1b-ba4a-9ff6f9f34003":
+    "eyJhbGciOiJIUzI1NiJ9.
+    eyJqdGkiOiJkOTMzNDFhZC03MzI5LTRkMWItYmE0YS05ZmY2ZjlmMzQwMDMiLC
+    JpYXQiOjE0NTg0OTYwMjUsImlzcyI6Imh0dHBzOi8vc2NpbS5leGFtcGxlLmNv
+    bSIsImF1ZCI6WyJodHRwczovL2podWIuZXhhbXBsZS5jb20vRmVlZHMvOThkNT
+    I0NjFmYTViYmM4Nzk1OTNiNzc1NCIsImh0dHBzOi8vamh1Yi5leGFtcGxlLmNv
+    bS9GZWVkcy81ZDc2MDQ1MTZiMWQwODY0MWQ3Njc2ZWU3Il0sInN1YiI6Imh0dH
+    BzOi8vc2NpbS5leGFtcGxlLmNvbS9Vc2Vycy80NGY2MTQyZGY5NmJkNmFiNjFl
+    NzUyMWQ5IiwiZXZlbnRzIjp7InVybjppZXRmOnBhcmFtczpzY2ltOmV2ZW50On
+    Bhc3N3b3JkUmVzZXQiOnsiaWQiOiI0NGY2MTQyZGY5NmJkNmFiNjFlNzUyMWQ5
+    In0sImh0dHBzOi8vZXhhbXBsZS5jb20vc2NpbS9ldmVudC9wYXNzd29yZFJlc2
+    V0RXh0Ijp7InJlc2V0QXR0ZW1wdHMiOjV9fX0.IGbGOmSBtyS8wOGyMhWHe83v
+    YgbGjUoezk-cIpYzVeY"
   },
   "setErrs": {
     "5c436b19-0958-4367-b408-2dd542606d3b" : {
@@ -252,7 +261,7 @@ Authorization: Bearer eyJraWQiOiIyMDIwXzEiLCJJhbGciOiJSUzI1NiJ9...
 }
 ~~~
 {: #fig-example-request title="Example Pushpull request"}
-In the above example request, the Initiator does acknowledge any previous events. Delivers two SETs and reports an error on a previously received SET.
+In the above example request, the Initiator does not acknowledge any previous events. Delivers two SETs and reports an error on a previously received SET.
 
 ### Response
 The following is a non-normative example of a response:
@@ -263,19 +272,19 @@ Content-type: application/json
 
 {
   "ack": [
-    "3d0c3cf797584bd193bd0fb1bd4e7d30"
+    "d8d439e6-b103-47c7-86d9-d5951ce774d1"
   ],
   "sets": {
-    "756E69717565206964656E746966696572":
-    "eyJ0eXAiOiJzZWNldmVudCtqd3QiLCJhbGciOiJIUzI1NiJ9Cg.
-  eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLmNvbS8iLCJqdGkiOiI3NTZFNjk
-  3MTc1NjUyMDY5NjQ2NTZFNzQ2OTY2Njk2NTcyIiwiaWF0IjoxNTA4MTg0ODQ1LC
-  JhdWQiOiI2MzZDNjk2NTZFNzQ1RjY5NjQiLCJldmVudHMiOnsiaHR0cHM6Ly9zY
-  2hlbWFzLm9wZW5pZC5uZXQvc2VjZXZlbnQvcmlzYy9ldmVudC10eXBlL2FjY291
-  bnQtZGlzYWJsZWQiOnsic3ViamVjdCI6eyJzdWJqZWN0X3R5cGUiOiJpc3Mtc3V
-  iIiwiaXNzIjoiaHR0cHM6Ly9pZHAuZXhhbXBsZS5jb20vIiwic3ViIjoiNzM3NT
-  YyNkE2NTYzNzQifSwicmVhc29uIjoiaGlqYWNraW5nIn19fQ.
-  Y4rXxMD406P2edv00cr9Wf3_XwNtLjB9n-jTqN1_lLc"
+    "3f1c5fc7-99c5-4c2b-a9a3-68ea90be9ca9":
+    "eyJ0eXAiOiJzZWNldmVudCtqd3QiLCJhbGciOiJIUzI1NiJ9.
+    eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLmNvbS8iLCJqdGkiOiIzZjFjNW
+    ZjNy05OWM1LTRjMmItYTlhMy02OGVhOTBiZTljYTkiLCJpYXQiOjE1MDgxODQ4
+    NDUsImF1ZCI6IjYzNkM2OTY1NkU3NDVGNjk2NCIsImV2ZW50cyI6eyJodHRwcz
+    ovL3NjaGVtYXMub3BlbmlkLm5ldC9zZWNldmVudC9yaXNjL2V2ZW50LXR5cGUv
+    YWNjb3VudC1kaXNhYmxlZCI6eyJzdWJqZWN0Ijp7InN1YmplY3RfdHlwZSI6Im
+    lzcy1zdWIiLCJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLmNvbS8iLCJzdWIi
+    OiI3Mzc1NjI2QTY1NjM3NCJ9LCJyZWFzb24iOiJoaWphY2tpbmcifX19._Jwjs
+    2M2AbxvPRRJJi5Kjl_Xepveugdd9Wb_Bh2Jj8s"
   }
 }
 ~~~
@@ -294,11 +303,18 @@ The Pushpull subprotocol is used to transport Communication Objects {{communicat
 During the Websocket handshake, the Initiator MUST include the value `pushpull` in the list of protocols for the `Sec-WebSocket-Protocol` header. The reply from the Responder MUST also include the value `pushpull` in the list of values in its own `Sec-WebSocket-Protocol` header, in order for the Initiator and Responder to use WebSockets.
 
 # Authentication and Authorization {#authn-and-authz}
+
+## Verifying the Responder
 The Initiator MUST verify the identity of the Responder by validating the TLS certification presented by the Responder, and verifying that it is the intended recipient of the request, before sending the Communication Object {{communication-object}}.
 
 The Initiator MUST attempt to obtain the OAuth Protected Resource Metadata {{OPRM}} for the Responder endpoint. If such metadata is found, the Initiator MUST obtain an access token using the metadata. If no such metadata is found, then the Initiator MAY use any means to authorize itself to the Responder.
 
-The Responder MUST verify the identity and authorization of the Initiator. The Responder MAY use OAuth Protected Resource Metadata {{OPRM}} for this purpose, but the Responder MAY use other means to authorize the Initiator, which are beyond the scope of this specification.
+## Verifying the Initiator
+The Responder MUST verify the identity and authorization of the Initiator. The Responder MAY use common authentication schemes such as Mutual TLS (MTLS) to verify the authenticity of the Initiator. 
+
+Alternatively, the Responder MAY provide OAuth Protected Resource Metadata {{OPRM}} to enable Initiators to obtain appropriate OAuth tokens to authenticate themselves and prove their authorization.
+
+Finally, the Responder MAY use other means to authenticate and authorize the Initiator, which are beyond the scope of this specification.
 
 # Delivery Reliability
 A Transceiver MUST attempt to deliver any SETs it has previously attempted to deliver to a Peer until:
