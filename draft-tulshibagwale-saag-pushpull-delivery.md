@@ -39,6 +39,10 @@ contributor:
   name: Apoorva Deshpande
   org: Okta
   email: apoorva.deshpande@okta.com
+- ins: A. Parecki
+  name: Aaron Parecki
+  org: Okta
+  email: aaron@parecki.com
 
 normative:
   RFC2119: # Keywords
@@ -76,7 +80,7 @@ Using current mechanisms such as "Push-Based Delivery of Security Event Tokens (
 --- middle
 
 # Introduction
-Workloads that exchange SETs {{RFC8417}} with each other ("Transceivers") can do so efficiently using the protocol defined in this specification. Although this specification works along the lines of the DeliveryPush {{RFC8935}} and DeliveryPoll {{RFC8936}} specifications, it makes a few important additions:
+Entities that exchange SETs {{RFC8417}} with each other ("Transceivers") can do so efficiently using the protocol defined in this specification. This specification extends the mechanisms described in the DeliveryPush {{RFC8935}} and DeliveryPoll {{RFC8936}} with the following additional mechanisms:
 
 * A Transceiver initiating a communication can send multiple SETs in one HTTP connection to a Peer
 * The Transceiver initiating communication can acknowledge previously received SETs in the same HTTP connection to the Peer
@@ -94,7 +98,7 @@ they appear in all capitals, as shown here.
 # Terminology
 
 Transceiver
-: A networked workload that can act both as a transmitter of SETs and a receiver of SETs. It communicates with other trusted Transceivers to transmit and receive SETs using the protocol defined herein.
+: A networked entity that can act both as a transmitter of SETs and a receiver of SETs. It communicates with other trusted Transceivers to transmit and receive SETs using the protocol defined herein.
 
 Peer
 : Another name for a Transceiver, used to signify the other end of the communication from a Transceiver.
@@ -115,7 +119,7 @@ DeliveryPoll
 Each Transceiver that supports this specification MUST support a "Pushpull" endpoint. This endpoint MUST be capable of serving HTTP {{RFC9110}} requests. This endpoint MUST be TLS {{RFC8446}} enabled and MUST reject any communication not using TLS. The Pushpull endpoint MUST support the HTTP method `POST` and reject all other HTTP methods.
 
 # Communication Object {#communication-object}
-A Communication Object is a JSON object {{RFC8259}}, and is a unit of communication used in this specification used both in requests and responses. When used in a request, the Initiator MAY have additional fields defined the later sections below. The common fields of this object are:
+A Communication Object is a JSON object {{RFC8259}}, and is a unit of communication defined in this specification for use in both requests and responses. When used in a request, the Initiator MAY include additional fields defined in the later sections below. The common fields of this object are:
 
 sets
 : OPTIONAL. A JSON object containing key-value pairs in which the key of a field is a string that contains the `jti` value of the SET that is specified in the value of the field. This field MAY be omitted to indicate that no SETs are being delivered by the initiator in this communication.
@@ -185,11 +189,11 @@ This section describes how Transceivers can use HTTP Requests and Responses to e
 
 A Transceiver can initiate communication with a Peer in order to:
 
+* Send one or more SETs to the Peer.
 * Positively or negatively acknowledge previously received SETs from the Peer.
-* Send SETs to the Peer.
 * Both acknowledge previously received SETs from the Peer and send SETs to the Peer.
 
-To initiate communication, the Initiator makes a HTTP POST request to the Responder's Pushpull Endpoint {{pushpull-endpoint}}. The body of this request is of the content type "application/json". It contains a Communication Object {{communication-object}}, and the following additional field MAY be present:
+To initiate communication, the Initiator makes a HTTP POST request to the Responder's Pushpull Endpoint {{pushpull-endpoint}}. The body of this request is of the content type `application/json`. It contains a Communication Object {{communication-object}}, and the following additional field MAY be present:
 
 maxResponseEvents
 : OPTIONAL. A number which specifies the maximum number of events the Responder can include in its response to the Initiator. If this field is absent in the request, the Responder MAY include any number of events in the response. If this field is present, then the Responder MUST NOT include more events than the value of "maxResponseEvents" in its response to the specific request.
@@ -201,7 +205,7 @@ A Responder MUST respond to a communication from an Initiator by sending an HTTP
 ### Success Response {#http-success-response}
 If the Responder is successful in receiving the request, it MUST return the HTTP status code 200 (OK). This status only indicates that the communication received was well formatted and was successfully parsed by the Responder. It does not indicate anything about whether any SETs in the communication were accepted or not.
 
-The response MUST have the content-type "application/json" and the response MUST include a Communication Object {{communication-object}}.
+The response MUST have the content-type `application/json` and the response MUST include a Communication Object {{communication-object}}.
 
 ### Error Response
 The Responder MUST respond with an error response if it is unable to process the request. This error response means that the responder was unable to parse the communication or the responder encountered a system error while attempting to process the communication. It does not indicate a positive or negative acknowledgement of any SETs in the communication.
@@ -261,7 +265,7 @@ Authorization: Bearer eyJraWQiOiIyMDIwXzEiLCJJhbGciOiJSUzI1NiJ9...
 }
 ~~~
 {: #fig-example-request title="Example Pushpull request"}
-In the above example request, the Initiator does not acknowledge any previous events. Delivers two SETs and reports an error on a previously received SET.
+In the above example request, the Initiator does not acknowledge any previous events, delivers two SETs, and reports an error on a previously received SET.
 
 ### Response
 The following is a non-normative example of a response:
@@ -307,14 +311,10 @@ During the Websocket handshake, the Initiator MUST include the value `pushpull` 
 ## Verifying the Responder
 The Initiator MUST verify the identity of the Responder by validating the TLS certification presented by the Responder, and verifying that it is the intended recipient of the request, before sending the Communication Object {{communication-object}}.
 
-The Initiator MUST attempt to obtain the OAuth Protected Resource Metadata {{OPRM}} for the Responder endpoint. If such metadata is found, the Initiator MUST obtain an access token using the metadata. If no such metadata is found, then the Initiator MAY use any means to authorize itself to the Responder.
-
 ## Verifying the Initiator
-The Responder MUST verify the identity and authorization of the Initiator. The Responder MAY use common authentication schemes such as Mutual TLS (MTLS) to verify the authenticity of the Initiator. 
+The Responder MUST verify the identity and authorization of the Initiator. The mechanism by which the Responder verifies the Initiator is out of scope of this specification, but may include mechanisms such as Mutual TLS (MTLS) client authentication, or OAuth access tokens.
 
-Alternatively, the Responder MAY provide OAuth Protected Resource Metadata {{OPRM}} to enable Initiators to obtain appropriate OAuth tokens to authenticate themselves and prove their authorization.
-
-Finally, the Responder MAY use other means to authenticate and authorize the Initiator, which are beyond the scope of this specification.
+The Initiator MUST attempt to obtain the OAuth Protected Resource Metadata {{OPRM}} for the Responder endpoint. If such metadata is found, the Initiator MUST obtain an access token using an OAuth authorization server discovered in the metadata. If no such metadata is found, then the mechanism of authenticating to the Responder is out of scope of this specification.
 
 # Delivery Reliability
 A Transceiver MUST attempt to deliver any SETs it has previously attempted to deliver to a Peer until:
@@ -325,7 +325,7 @@ A Transceiver MUST attempt to deliver any SETs it has previously attempted to de
 
 If a Transceiver previously attempted to deliver a SET in a response to a Peer's request, the Transceiver MAY Initiate a request to the Peer in order to retry delivery of the SET. A Peer MUST be able to either provide `ack`s or `setErrs` for the same SETs either through requests or responses.
 
-# All SETs Accounted For {#all-sets-accounted-for}
+## All SETs Accounted For {#all-sets-accounted-for}
 A Transceiver MUST ensure that it includes the `jti` value of each SET it receives, either in an `ack` or a `setErrs` value, to the Transceiver from which it received the SETs. A Transceiver SHOULD retry sending the same SET again if it was never responded to either in an `ack` value or in a `setErrs` value by a receiving Transceiver in a reasonable time period. A Transceiver MAY limit the number of times it retries sending a SET. A Transceiver MAY publish the retry time period and maximum number of retries to its peers, but such publication is outside the scope of this specification.
 
 # Uniqueness of SETs
@@ -334,7 +334,7 @@ A Transceiver MUST NOT send two SETs with the same `jti` value if the SET has be
 # Security Considerations
 
 ## Authentication and Authorization
-Transceivers MUST follow the procedures described in section {{authn-and-authz}} in order to securely authenticate and authorize Peers
+Transceivers MUST follow the procedures described in {{authn-and-authz}} in order to securely authenticate and authorize Peers.
 
 ## HTTP and TLS
 Transceivers MUST use TLS {{RFC8446}} to communicate with Peers and is subject to the security considerations of HTTP {{RFC9110}} Section 17.
@@ -343,7 +343,7 @@ Transceivers MUST use TLS {{RFC8446}} to communicate with Peers and is subject t
 A Responder may be vulnerable to denial of service attacks wherein a large number of spurious requests need to be processed. Having efficient authorization mechanisms such as OAuth 2.0 {{RFC6749}} can mitigate such attacks by leveraging standard infrastructure that is designed to handle such attacks.
 
 ## Temporary Disconnection
-Transceivers must make sure they respond to each SET received in a timely manner as described in the "All SETs Accounted For" section {{all-sets-accounted-for}}. This ensures that if there was a temporary disconnection between two Transceivers, say when a Responding Transceiver sent a Communication Object in the HTTP Response, that such disconnection is detected and the missing SETs can be retried.
+Transceivers must make sure they respond to each SET received in a timely manner as described in the "All SETs Accounted For" ({{all-sets-accounted-for}}). This ensures that if there was a temporary disconnection between two Transceivers, for example when a Responding Transceiver sent a Communication Object in the HTTP Response, that such disconnection is detected and the missing SETs can be retried.
 
 # Privacy Considerations
 SETs may contain confidential information, and Transceivers receiving SETs must be careful not to log such content or ensure that sensitive information from the SET is redacted before logging.
