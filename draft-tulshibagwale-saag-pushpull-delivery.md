@@ -351,7 +351,7 @@ SETs may contain confidential information, and Transceivers receiving SETs must 
 # IANA Considerations
 The following WebSocket subprotocol will be added to the "WebSocket Subprotocol Name Registry" {{IANA.WebSocket.Subprotocol}}
 
-* Subprotocol Identifier: `puhspull`
+* Subprotocol Identifier: `pushpull`
 * Subprotocol Common Name: `WebSocket transport for Pushpull delivery of SETs`
 * Subprotocol Definition: Section {{pushpull-subprotocol-handshake}} of this document.
 
