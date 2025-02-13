@@ -76,7 +76,7 @@ jobs:
         with:
           name: my-artifact
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: .
       - name: Deploy to GitHub Pages
