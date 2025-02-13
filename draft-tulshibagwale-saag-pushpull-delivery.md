@@ -331,6 +331,23 @@ A Transceiver MUST ensure that it includes the `jti` value of each SET it receiv
 # Uniqueness of SETs
 A Transceiver MUST NOT send two SETs with the same `jti` value if the SET has been either acknowledged through `ack` value or produced an error indicated by a `setErrs` value. If a Transceiver wishes to re-send an event after it has received a error response through a `setErrs` value, then it MUST generate a new SET that has a new (and unique) `jti` value.
 
+# Conformance
+
+This section describes conformance criteria for entities conforming to this specification.
+
+## Multi-Push
+
+The "Multi-Push" conformance class enables a Transmitter to deliver multiple SETs to a Receiver. To conform to the "Multi-Push" class, a Transceiver acts as only one role: a Transmitter or Receiver.
+
+A Transmitter MUST support `sets` in the request Communication Object.
+
+A Receiver MUST support `acks` and `setErrs` in the response Communication Object.
+
+## Push-Pull
+
+The "Push-Pull" conformance class enables bidirectional communication between Transceivers to both send and receive SETs in the same request and response. Transceivers MUST support `sets`, `acks` and `setErrs` in all Communication Objects.
+
+
 # Security Considerations
 
 ## Authentication and Authorization
