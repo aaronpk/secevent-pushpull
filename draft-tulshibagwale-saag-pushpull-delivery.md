@@ -341,7 +341,7 @@ The "Multi-Push" conformance class enables a Transmitter to deliver multiple SET
 
 A Transmitter MUST support `sets` in the request Communication Object.
 
-A Receiver MUST support `acks` and/or `setErrs` in the response Communication Object.
+A Receiver MUST support `acks` and `setErrs` in the response Communication Object.
 
 ## Push-Pull
 
